@@ -13,7 +13,8 @@ captured=0
 while IFS='|' read -r filename route; do
   if [[ -z "$filename" || "$filename" == \#* ]]; then continue; fi
   adb shell am force-stop "$APP" </dev/null || true
-  adb shell am start -W -n "$APP/.MainActivity" --es preview_screen "$route" </dev/null >/dev/null
+  printf -v escaped_route '%q' "$route"
+  adb shell "am start -W -n ${APP}/.MainActivity --es preview_screen ${escaped_route}" </dev/null >/dev/null
   sleep 1
   adb exec-out screencap -p </dev/null > "visual-qa/captures/${filename}.png"
   captured=$((captured+1))
