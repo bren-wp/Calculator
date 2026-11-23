@@ -1,6 +1,6 @@
 # Building Calculator
 
-Install Android Studio with Android SDK platform 35, Android Build Tools 35, Java 17 and Gradle 8.11.1.
+Install Android Studio with Android SDK platform 36, Android Build Tools 36, Java 17 and Gradle 8.11.1.
 
 Open the root project in Android Studio and sync Gradle. Run the app module on an emulator or device (API 24+).
 
