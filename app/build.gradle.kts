@@ -4,7 +4,7 @@ plugins {
 }
 android {
     namespace = "com.brendigo.calculator"
-    compileSdk = 37
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.brendigo.calculator"
         minSdk = 24
