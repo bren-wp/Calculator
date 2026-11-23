@@ -9,12 +9,14 @@ adb shell settings put system font_scale 1.0
 adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
+captured=0
 while IFS='|' read -r filename route; do
   if [[ -z "$filename" || "$filename" == \#* ]]; then continue; fi
-  adb shell am force-stop "$APP" || true
-  adb shell am start -W -n "$APP/.MainActivity" --es preview_screen "$route" >/dev/null
+  adb shell am force-stop "$APP" </dev/null || true
+  adb shell am start -W -n "$APP/.MainActivity" --es preview_screen "$route" </dev/null >/dev/null
   sleep 1
-  adb exec-out screencap -p > "visual-qa/captures/${filename}.png"
+  adb exec-out screencap -p </dev/null > "visual-qa/captures/${filename}.png"
+  captured=$((captured+1))
   echo "Captured ${filename}"
 done <<'SCREENS'
 01_standard_calculator|Standard Calculator
@@ -44,3 +46,8 @@ done <<'SCREENS'
 25_amoled_theme_standard|AMOLED Theme
 26_widget_previews|Widgets
 SCREENS
+
+if [ "$captured" -ne 26 ]; then
+  echo "Expected 26 separate screen captures, received $captured" >&2
+  exit 1
+fi

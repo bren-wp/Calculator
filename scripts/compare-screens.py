@@ -10,6 +10,14 @@ captures = Path("visual-qa/captures")
 originals = Path("branding/screens")
 diffs = Path("visual-qa/differences")
 diffs.mkdir(parents=True, exist_ok=True)
+expected = {p.stem for p in originals.glob("[0-9][0-9]_*.svg") if not p.name.startswith("00_")}
+actual = {p.stem for p in captures.glob("*.png")}
+if not expected or expected != actual:
+    raise SystemExit(
+        f"Incomplete visual QA: expected {len(expected)} screens; "
+        f"captured {len(actual)}; missing={sorted(expected - actual)}; "
+        f"unexpected={sorted(actual - expected)}"
+    )
 rows = []
 for image_path in sorted(captures.glob("*.png")):
     name = image_path.stem
@@ -31,6 +39,8 @@ for image_path in sorted(captures.glob("*.png")):
         "image_height":capture.height})
 
 report = Path("visual-qa/report.csv")
+if len(rows) != 26:
+    raise SystemExit(f"Expected 26 comparisons, got {len(rows)}")
 with report.open("w",newline="") as file:
     writer = csv.DictWriter(file,fieldnames=list(rows[0]) if rows else ["screen"])
     writer.writeheader()
