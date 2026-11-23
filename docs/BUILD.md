@@ -1,23 +1,15 @@
-# Building Calculator
+# Calculator — build & release
 
-Install Android Studio with Android SDK platform 36, Android Build Tools 36, Java 17 and Gradle 8.11.1.
+The native application targets API 36, compiles against API 37.0, minSdk 24 and uses Java 17, AGP 9.4.0, Kotlin Compose compiler 2.4.10, Gradle 9.6.0 and stable AndroidX dependencies.
 
-Open the root project in Android Studio and sync Gradle. Run the app module on an emulator or device (API 24+).
+Open the project in Android Studio or run:
 
-Command-line CI equivalent (with Gradle 8.11.1 available):
-
-```sh
-gradle --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+```bash
+gradle --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:bundleDebug :app:bundleRelease
 ```
 
-Build output: `app/build/outputs/apk/debug/app-debug.apk`.
+Android CI attaches **Calculator-debug.apk**, **Calculator-debug.aab**, **Calculator-release-UNSIGNED.aab**, **Calculator-source.zip** and **SHA256SUMS.txt** on every passing PR build.
 
-Release builds are unsigned unless signing is configured securely outside this repository. Never commit private signing credentials.
+Pushes to main or the development branch create a tagged GitHub **pre-release** with these assets. The upload signature used for debug artifacts is NOT a production key. The release bundle is **unsigned** and cannot be uploaded to Google Play until signed with the account's secure upload key. Do not commit private keys or include them in source archives.
 
-The repository includes a Gradle wrapper properties file but does not yet contain the executable wrapper JAR; CI invokes a version-pinned Gradle distribution directly.
-
-## Verification targets
-
-Functional tests cover expression precedence, factorials, percentages, trigonometry, currency-model safety, loan math and unit conversions. Before production rollout, run instrumented interaction tests, automated screenshot-difference tests at multiple display densities, accessibility checks, process-death restoration, landscape tests and Play pre-launch reports.
-
-The vector files in `branding/screens/` are design references; screen-perfect matches must be assessed using captured emulator screenshots rather than inferred from the design source.
+A successful build does not prove pixel-perfect parity. Visual QA compares 26 captured screen renders against reference SVGs and emits a per-screen difference report. Release readiness additionally requires Play Console pre-launch checks, signing, privacy declarations, policy review and manual device and accessibility QA.
