@@ -7,18 +7,28 @@ on:
       - 'scripts/**'
       - '.github/workflows/visual-qa.yml'
   workflow_dispatch:
+
+concurrency:
+  group: calculator-visual-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   capture:
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
+    # macOS provides a native hardware-accelerated emulator. The Ubuntu 26.04
+    # hosted runner lacks /dev/kvm and recent Android emulators refuse TCG by default.
+    runs-on: macos-15
+    timeout-minutes: 30
     permissions: { contents: read }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: '17' }
+        with:
+          distribution: temurin
+          java-version: '17'
       - uses: android-actions/setup-android@v4
       - uses: gradle/actions/setup-gradle@v4
-        with: { gradle-version: '8.11.1' }
+        with:
+          gradle-version: '8.11.1'
       - name: Install platform
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - name: Compile app
@@ -28,17 +38,26 @@ jobs:
         with:
           api-level: 35
           arch: x86_64
+          target: google_apis
           profile: pixel_5
+          emulator-boot-timeout: 240
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           script: bash scripts/capture-screens.sh
       - uses: actions/setup-python@v5
-        with: { python-version: '3.12' }
-      - name: Compare against original Calculator branding
+        if: always()
+        with:
+          python-version: '3.12'
+      - name: Prepare visual comparison dependencies
+        if: always()
         run: |
+          if ! brew list cairo >/dev/null 2>&1; then brew install cairo; fi
           python -m pip install --disable-pip-version-check Pillow cairosvg
-          python scripts/compare-screens.py
+      - name: Compare against original Calculator branding
+        if: ${{ success() }}
+        run: python scripts/compare-screens.py
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: calculator-screen-parity-report
           path: visual-qa/
-          if-no-files-found: error
+          if-no-files-found: warn
