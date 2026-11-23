@@ -1,0 +1,71 @@
+name: Visual QA
+on:
+  pull_request:
+    paths:
+      - 'app/src/**'
+      - 'branding/screens/**'
+      - 'scripts/**'
+      - '.github/workflows/visual-qa.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: calculator-visual-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    permissions: { contents: read }
+    env:
+      # Emulator 37+ rejects software CPU emulation unless it is explicitly opted in.
+      # KVM is used preferentially when available.
+      ANDROID_I_WANT_MY_TCG: 'yes'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Configure hardware acceleration
+        run: |
+          if [ -e /dev/kvm ]; then
+            sudo chmod 666 /dev/kvm
+            echo "KVM acceleration enabled."
+          else
+            echo "::warning::No /dev/kvm available; Android emulator will use explicit TCG fallback."
+          fi
+      - name: Install platform
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Compile app
+        run: gradle --no-daemon :app:assembleDebug
+      - name: Capture live screen renders
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_5
+          emulator-boot-timeout: 420
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: bash scripts/capture-screens.sh
+      - uses: actions/setup-python@v5
+        if: always()
+        with:
+          python-version: '3.12'
+      - name: Prepare visual comparison dependencies
+        if: success()
+        run: python -m pip install --disable-pip-version-check Pillow cairosvg
+      - name: Compare against original Calculator branding
+        if: success()
+        run: python scripts/compare-screens.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: calculator-screen-parity-report
+          path: visual-qa/
+          if-no-files-found: warn
