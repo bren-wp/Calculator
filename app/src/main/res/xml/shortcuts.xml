@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+  <shortcut android:shortcutId="scientific" android:enabled="true"
+      android:icon="@drawable/ic_brand"
+      android:shortcutShortLabel="@string/shortcut_scientific"
+      android:shortcutLongLabel="@string/shortcut_scientific">
+    <intent android:action="android.intent.action.VIEW"
+      android:targetPackage="com.brendigo.calculator"
+      android:targetClass="com.brendigo.calculator.MainActivity">
+      <extra android:name="mode" android:value="Scientific"/>
+    </intent>
+  </shortcut>
+  <shortcut android:shortcutId="programmer" android:enabled="true"
+      android:icon="@drawable/ic_brand"
+      android:shortcutShortLabel="@string/shortcut_programmer"
+      android:shortcutLongLabel="@string/shortcut_programmer">
+    <intent android:action="android.intent.action.VIEW"
+      android:targetPackage="com.brendigo.calculator"
+      android:targetClass="com.brendigo.calculator.MainActivity">
+      <extra android:name="mode" android:value="Programmer"/>
+    </intent>
+  </shortcut>
+</shortcuts>
