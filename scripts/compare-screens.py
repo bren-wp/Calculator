@@ -28,6 +28,18 @@ for image_path in sorted(captures.glob("*.png")):
     golden_bytes = cairosvg.svg2png(url=str(original_path),
         output_width=capture.width, output_height=capture.height)
     reference = Image.open(io.BytesIO(golden_bytes)).convert("RGB")
+    # A system-level app-not-responding dialog invalidates screenshot comparison.
+    # Dark themes should not have a large near-white rectangle in their center.
+    if name != "24_light_theme_standard":
+        w, h = capture.size
+        middle = capture.crop((int(w * .15), int(h * .25), int(w * .85), int(h * .85)))
+        samples = list(middle.getdata())
+        bright_ratio = sum(min(pixel) >= 220 for pixel in samples) / len(samples)
+        if bright_ratio > 0.35:
+            raise SystemExit(
+                f"{name}: unexpected bright system overlay ({bright_ratio:.1%} pixels). "
+                "Check emulator ANR dialogs; screenshot QA cannot pass."
+            )
     delta = ImageChops.difference(reference,capture)
     stats = ImageStat.Stat(delta)
     mae = round(sum(stats.mean) / len(stats.mean), 3)
