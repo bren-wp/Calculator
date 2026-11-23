@@ -25,11 +25,13 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.brendigo.calculator.data.CalculatorState
 import com.brendigo.calculator.ui.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         val app = CalculatorState(applicationContext)
         val requestedMode = intent.getStringExtra("mode")
@@ -44,7 +46,14 @@ class MainActivity : ComponentActivity() {
                 WindowInsetsControllerCompat(window,window.decorView)
                     .isAppearanceLightStatusBars = app.theme=="Light"
             }
-            MaterialTheme { CalculatorRoot(app) }
+            val colors = if (app.theme == "Light") lightColorScheme(
+                primary=p.accent, onPrimary=p.onAccent, background=p.background,
+                onBackground=p.text, surface=p.surface, onSurface=p.text,
+                surfaceVariant=p.surface2, onSurfaceVariant=p.muted)
+            else darkColorScheme(primary=p.accent, onPrimary=p.onAccent,
+                background=p.background, onBackground=p.text, surface=p.surface,
+                onSurface=p.text, surfaceVariant=p.surface2, onSurfaceVariant=p.muted)
+            MaterialTheme(colorScheme=colors) { CalculatorRoot(app) }
         }
     }
 }

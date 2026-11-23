@@ -39,20 +39,21 @@ import java.util.Locale
         if(app.activeMode=="Programmer") {
             ProgrammerPanel(p)
         } else {
-            BrandCard(p,Modifier.fillMaxWidth().weight(if(app.activeMode=="Scientific")0.72f else 1f)) {
-                Box(Modifier.fillMaxSize(),contentAlignment=Alignment.BottomEnd) {
-                    Column(horizontalAlignment=Alignment.End) {
+            BrandCard(p,Modifier.fillMaxWidth().weight(if(app.activeMode=="Scientific")1.6f else 2.4f)) {
+                Box(Modifier.fillMaxSize()) {
+                    Column(Modifier.align(Alignment.CenterEnd),
+                        horizontalAlignment=Alignment.End) {
                         Text(app.expression.ifBlank { "0" },color=p.muted,fontSize=24.sp,
                             textAlign=TextAlign.End,maxLines=2)
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(18.dp))
                         val result=if(app.expression.isBlank())"0" else app.calculate()
                         Text(if(app.thousands) CalculatorEngine.grouped(result) else result,
                             color=if(result=="Error")Color(0xFFFF978A) else p.text,
-                            fontSize=if(result.length>12)39.sp else 51.sp,
+                            fontSize=if(result.length>12)39.sp else 54.sp,
                             fontWeight=FontWeight.Bold,maxLines=2,textAlign=TextAlign.End)
-                        Spacer(Modifier.height(8.dp))
-                        Text("Instant result",color=p.accent,fontSize=12.sp)
                     }
+                    Text("Instant result",color=p.accent,fontSize=12.sp,
+                        modifier=Modifier.align(Alignment.BottomStart))
                 }
             }
             Spacer(Modifier.height(13.dp))

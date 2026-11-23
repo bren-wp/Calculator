@@ -6,4 +6,9 @@
     <item name="android:navigationBarColor">@color/brand_background</item>
     <item name="android:windowBackground">@color/brand_background</item>
   </style>
+  <style name="Theme.Calculator.Starting" parent="Theme.SplashScreen">
+    <item name="windowSplashScreenBackground">@color/brand_background</item>
+    <item name="windowSplashScreenAnimatedIcon">@drawable/ic_brand</item>
+    <item name="postSplashScreenTheme">@style/Theme.Calculator</item>
+  </style>
 </resources>
