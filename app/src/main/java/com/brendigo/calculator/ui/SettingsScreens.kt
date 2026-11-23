@@ -23,8 +23,8 @@ import com.brendigo.calculator.data.CalculatorState
         BrandOption("Appearance","Themes and color schemes",p,{app.activePage="Appearance"},app.theme)
         BrandOption("Calculation Preferences","Angles, results and number formatting",p,
             {app.activePage="Calculation Preferences"})
-        BrandToggle("Vibration","Haptic feedback on key press",p,app.vibration,app::setVibration)
-        BrandToggle("Sound","Key press sounds",p,app.sounds,app::setSounds)
+        BrandToggle("Vibration","Haptic feedback on key press",p,app.vibration,app::updateVibration)
+        BrandToggle("Sound","Key press sounds",p,app.sounds,app::updateSounds)
         BrandOption("Quick Access","Open Calculator with fewer taps",p,{app.activePage="Quick Access"})
         BrandOption("Widgets","Calculator at a glance",p,{app.activePage="Widgets"})
         BrandOption("Privacy & Data","Manage your locally stored history",p,{app.activePage="Privacy & Data"})
@@ -41,7 +41,7 @@ import com.brendigo.calculator.data.CalculatorState
             Triple("AMOLED","Pure black with vibrant accents",Color.Black)
         ).forEach { (name,description,swatch) ->
             Row(Modifier.fillMaxWidth().padding(horizontal=24.dp,vertical=7.dp)
-                .background(p.surface,BrandShape).clickable {app.setTheme(name)}
+                .background(p.surface,BrandShape).clickable {app.updateTheme(name)}
                 .padding(18.dp),verticalAlignment=Alignment.CenterVertically) {
                 Box(Modifier.size(64.dp).background(swatch,RoundedCornerShape(12.dp))
                     .border(1.dp,p.stroke,RoundedCornerShape(12.dp)),
@@ -66,11 +66,11 @@ import com.brendigo.calculator.data.CalculatorState
             modifier=Modifier.padding(horizontal=24.dp,vertical=9.dp))
         Row(Modifier.fillMaxWidth().padding(horizontal=24.dp),
             horizontalArrangement=Arrangement.spacedBy(9.dp)) {
-            BrandButton("Degrees",p,{app.setDegrees(true)},Modifier.weight(1f),primary=app.degrees)
-            BrandButton("Radians",p,{app.setDegrees(false)},Modifier.weight(1f),primary=!app.degrees)
+            BrandButton("Degrees",p,{app.updateDegrees(true)},Modifier.weight(1f),primary=app.degrees)
+            BrandButton("Radians",p,{app.updateDegrees(false)},Modifier.weight(1f),primary=!app.degrees)
         }
         Spacer(Modifier.height(12.dp))
-        BrandToggle("Digit grouping","Separate thousands with commas",p,app.thousands,app::setThousands)
+        BrandToggle("Digit grouping","Separate thousands with commas",p,app.thousands,app::updateThousands)
         BrandCard(p,Modifier.padding(24.dp).fillMaxWidth()) {
             Text("Number examples",color=p.muted,fontSize=13.sp)
             Text(if(app.thousands)"1,234,567.89" else "1234567.89",

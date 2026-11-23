@@ -38,11 +38,11 @@ class CalculatorState(context: Context) {
             }
         } catch (_: Exception) { history.clear() }
     }
-    fun setTheme(value: String) { theme = value; prefs.edit().putString("theme",value).apply() }
-    fun setDegrees(value: Boolean) { degrees = value; prefs.edit().putBoolean("degrees",value).apply() }
-    fun setVibration(value: Boolean) { vibration = value; prefs.edit().putBoolean("vibration",value).apply() }
-    fun setSounds(value: Boolean) { sounds = value; prefs.edit().putBoolean("sounds",value).apply() }
-    fun setThousands(value: Boolean) { thousands = value; prefs.edit().putBoolean("thousands",value).apply() }
+    fun updateTheme(value: String) { theme = value; prefs.edit().putString("theme",value).apply() }
+    fun updateDegrees(value: Boolean) { degrees = value; prefs.edit().putBoolean("degrees",value).apply() }
+    fun updateVibration(value: Boolean) { vibration = value; prefs.edit().putBoolean("vibration",value).apply() }
+    fun updateSounds(value: Boolean) { sounds = value; prefs.edit().putBoolean("sounds",value).apply() }
+    fun updateThousands(value: Boolean) { thousands = value; prefs.edit().putBoolean("thousands",value).apply() }
     private fun saveHistory() {
         val arr = JSONArray()
         history.forEach {
