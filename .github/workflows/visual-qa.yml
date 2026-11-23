@@ -37,7 +37,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
-          arch: x86_64
+          arch: arm64-v8a
           target: google_apis
           profile: pixel_5
           emulator-boot-timeout: 240
@@ -48,7 +48,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Prepare visual comparison dependencies
-        if: always()
+        if: success()
         run: |
           if ! brew list cairo >/dev/null 2>&1; then brew install cairo; fi
           python -m pip install --disable-pip-version-check Pillow cairosvg
