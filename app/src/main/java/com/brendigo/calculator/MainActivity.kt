@@ -1,6 +1,8 @@
 package com.brendigo.calculator
 
 import android.os.Bundle
+import android.media.AudioManager
+import android.media.ToneGenerator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -30,6 +32,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val app = CalculatorState(applicationContext)
+        val requestedMode = intent.getStringExtra("mode")
+        if (requestedMode in listOf("Standard","Scientific","Programmer")) {
+            app.activeMode = requestedMode!!
+        }
         setContent {
             val p = palette(app.theme)
             SideEffect {
@@ -46,6 +52,8 @@ class MainActivity : ComponentActivity() {
 @Composable private fun CalculatorRoot(app:CalculatorState) {
     val p = palette(app.theme)
     val haptics = LocalHapticFeedback.current
+    val tone = remember { ToneGenerator(AudioManager.STREAM_MUSIC,20) }
+    DisposableEffect(tone) { onDispose { tone.release() } }
     BackHandler(app.activePage!="Calculator") { app.activePage="Calculator" }
     Column(Modifier.fillMaxSize().background(p.background)
         .statusBarsPadding().navigationBarsPadding()) {
@@ -54,6 +62,7 @@ class MainActivity : ComponentActivity() {
             when(app.activePage) {
                 "Calculator" -> CalculatorPage(app,p) {
                     if(app.vibration) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    if(app.sounds) tone.startTone(ToneGenerator.TONE_PROP_BEEP,25)
                     app.press(it)
                 }
                 "History" -> HistoryPage(app,p,false)
