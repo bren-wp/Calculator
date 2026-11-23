@@ -10,7 +10,7 @@ import kotlin.math.*
 /** Offline expression evaluator: never executes arbitrary code or sends calculations anywhere. */
 object CalculatorEngine {
     fun calculate(expression: String, degrees: Boolean = true): String = try {
-        if (expression.isBlank()) "0" else {
+        if (expression.length > 256) "Error" else if (expression.isBlank()) "0" else {
             val parser = Parser(expression, degrees)
             val result = parser.evaluate()
             if (!result.isFinite()) "Error" else format(result)

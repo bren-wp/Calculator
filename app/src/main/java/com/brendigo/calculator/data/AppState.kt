@@ -23,7 +23,7 @@ class CalculatorState(context: Context) {
         private set
     var activePage by mutableStateOf("Calculator")
     var activeMode by mutableStateOf("Standard")
-    var expression by mutableStateOf("")
+    var expression by mutableStateOf(prefs.getString("active_expression","") ?: "")
     var memory by mutableDoubleStateOf(0.0)
     var lastResult by mutableStateOf("0")
     var errorMessage by mutableStateOf<String?>(null)
@@ -55,9 +55,10 @@ class CalculatorState(context: Context) {
     fun toggleFavorite(index: Int) {
         if (index in history.indices) { history[index] = history[index].copy(starred=!history[index].starred); saveHistory() }
     }
-    fun useHistory(entry: HistoryEntry) { expression=entry.expression; activeMode="Standard"; activePage="Calculator" }
+    fun useHistory(entry: HistoryEntry) { expression=entry.expression; prefs.edit().putString("active_expression",expression).apply(); activeMode="Standard"; activePage="Calculator" }
     fun calculate(): String = CalculatorEngine.calculate(expression,degrees)
     fun press(key: String) {
+        if (expression.length >= 200 && key !in listOf("AC","C","⌫","=")) return
         when (key) {
             "AC","C" -> { expression=""; lastResult="0"; errorMessage=null }
             "⌫" -> expression=expression.dropLast(1)
@@ -95,5 +96,6 @@ class CalculatorState(context: Context) {
                 else expression += key
             }
         }
+        prefs.edit().putString("active_expression",expression).apply()
     }
 }

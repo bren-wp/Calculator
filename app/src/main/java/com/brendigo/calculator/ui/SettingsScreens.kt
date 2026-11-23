@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import com.brendigo.calculator.data.CalculatorState
@@ -130,6 +131,7 @@ import com.brendigo.calculator.data.CalculatorState
 }
 
 @Composable fun AboutPage(app:CalculatorState,p:BrandPalette) {
+    val uriHandler=LocalUriHandler.current
     SettingsScroll {
         Column(Modifier.fillMaxWidth().padding(top=42.dp,bottom=35.dp),
             horizontalAlignment=Alignment.CenterHorizontally) {
@@ -142,7 +144,7 @@ import com.brendigo.calculator.data.CalculatorState
             Text("Version 1.0.0",color=p.accent,fontSize=15.sp)
         }
         BrandOption("Privacy","Your data stays on this device",p,{app.activePage="Privacy & Data"})
-        BrandOption("Source & licenses","Open-source MIT license",p,{})
+        BrandOption("Source & licenses","Open-source MIT license",p,{uriHandler.openUri("https://github.com/bren-wp/Calculator/blob/main/LICENSE")})
         Spacer(Modifier.height(60.dp))
         Text("© 2026 Calculator",color=p.muted,fontSize=12.sp,
             modifier=Modifier.fillMaxWidth(),textAlign=androidx.compose.ui.text.style.TextAlign.Center)
