@@ -3,6 +3,8 @@ package com.brendigo.calculator
 import android.os.Bundle
 import android.media.AudioManager
 import android.media.ToneGenerator
+import android.content.pm.ApplicationInfo
+import com.brendigo.calculator.data.HistoryEntry
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -37,6 +39,33 @@ class MainActivity : ComponentActivity() {
         val requestedMode = intent.getStringExtra("mode")
         if (requestedMode in listOf("Standard","Scientific","Programmer")) {
             app.activeMode = requestedMode!!
+        }
+        // Non-production image comparison entry points. Never shown in user-facing navigation.
+        if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+            val preview = intent.getStringExtra("preview_screen")
+            val pages = setOf("History","Favorites","Tools","Unit Converter",
+                "Currency Converter","Percentage","Tip & Split","Loan Planner",
+                "Discount","VAT & Tax","Date Calculator","Graphing",
+                "Settings","Appearance","Calculation Preferences",
+                "Quick Access","Privacy & Data","About","Widgets")
+            if (preview in pages) app.activePage = preview!!
+            if (preview=="Scientific Calculator") app.activeMode = "Scientific"
+            if (preview=="Programmer Calculator") app.activeMode = "Programmer"
+            if (preview=="Light Theme") app.updateTheme("Light")
+            else if (preview=="AMOLED Theme") app.updateTheme("AMOLED")
+            else app.updateTheme("Dark")
+            if (preview in listOf("History","Favorites")) {
+                app.history.clear()
+                app.history.addAll(listOf(
+                    HistoryEntry("128×8.5","1088",System.currentTimeMillis(),true),
+                    HistoryEntry("(50+25)×4","300",System.currentTimeMillis()-60000),
+                    HistoryEntry("sqrt(144)","12",System.currentTimeMillis()-120000)))
+            }
+            if (preview=="Empty History") { app.activePage="History";app.history.clear() }
+            if (preview=="Error State") app.expression="1÷0"
+            if (preview=="Standard Calculator" || preview in listOf("Light Theme","AMOLED Theme"))
+                app.expression="128×8.5"
+            if (preview=="Scientific Calculator") app.expression="sin(30)+2^2"
         }
         setContent {
             val p = palette(app.theme)
