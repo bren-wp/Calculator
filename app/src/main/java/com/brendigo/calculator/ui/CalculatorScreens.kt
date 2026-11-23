@@ -100,50 +100,167 @@ import java.util.Locale
 }
 
 @Composable private fun ProgrammerPanel(p:BrandPalette) {
-    var input by remember {mutableStateOf("255")}
-    var base by remember {mutableIntStateOf(10)}
-    var operand by remember {mutableStateOf("1")}
-    var result by remember {mutableStateOf("")}
-    val value=remember(input,base) {runCatching {BigInteger(input.trim(),base)}.getOrNull()}
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        Text("Number systems",fontSize=20.sp,color=p.text,fontWeight=FontWeight.SemiBold)
-        Spacer(Modifier.height(14.dp))
-        Row(horizontalArrangement=Arrangement.spacedBy(9.dp)) {
-            listOf(2,8,10,16).forEach { n ->
-                BrandButton(when(n){2->"BIN";8->"OCT";10->"DEC";else->"HEX"},p,
-                    onClick={if(value!=null){input=value.toString(n).uppercase(Locale.US);base=n}},
-                    Modifier.weight(1f),primary=base==n)
+    // Each base represents the same underlying integer. All calculations stay local.
+    var base by remember { mutableIntStateOf(16) }
+    var input by remember { mutableStateOf("109") }
+    var preview by remember { mutableStateOf("HEX FF + 0A") }
+    var pending by remember { mutableStateOf<String?>(null) }
+    var stored by remember { mutableStateOf<BigInteger?>(null) }
+    var newOperand by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    val number = remember(input, base) {
+        runCatching { BigInteger(input, base) }.getOrNull()
+    }
+    val options = listOf(16 to "HEX", 10 to "DEC", 8 to "OCT", 2 to "BIN")
+    val keypad = listOf(
+        listOf("AND", "OR", "XOR", "NOT"),
+        listOf("SHL", "SHR", "MOD", "±"),
+        listOf("A", "B", "C", "D"),
+        listOf("E", "F", "7", "8"),
+        listOf("9", "4", "5", "6"),
+        listOf("1", "2", "3", "+"),
+        listOf("0", "⌫", "AC", "=")
+    )
+
+    fun keyPressed(key: String) {
+        error = null
+        when (key) {
+            "AC" -> {
+                input = "0"; preview = ""; pending = null
+                stored = null; newOperand = true
             }
-        }
-        Spacer(Modifier.height(18.dp))
-        BrandTextInput("Input ("+when(base){2->"Binary";8->"Octal";10->"Decimal";else->"Hexadecimal"}+")",
-            input,{input=it.uppercase(Locale.US)},p)
-        Spacer(Modifier.height(15.dp))
-        if(value==null) Text("Invalid digits for this base",color=Color(0xFFFF978A))
-        listOf(16 to "HEX",10 to "DEC",8 to "OCT",2 to "BIN").forEach { (n,label) ->
-            BrandCard(p,Modifier.fillMaxWidth().padding(bottom=8.dp)) {
-                Text(label,color=p.accent,fontSize=12.sp)
-                Text(value?.toString(n)?.uppercase(Locale.US) ?: "—",color=p.text,
-                    fontSize=22.sp,fontWeight=FontWeight.SemiBold)
+            "⌫" -> {
+                input = input.dropLast(1).ifEmpty { "0" }
+                newOperand = false
+                preview = ""
             }
-        }
-        BrandTextInput("Bitwise operand (decimal)",operand,{operand=it},p)
-        Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-            listOf("AND","OR","XOR","NOT").forEach { op ->
-                BrandButton(op,p,onClick={
-                    val a=value;val b=operand.toBigIntegerOrNull()
-                    result=if(a==null) "Invalid number" else when(op) {
-                        "NOT" -> a.not().toString()
-                        "AND" -> b?.let{a.and(it).toString()} ?: "Invalid operand"
-                        "OR" -> b?.let{a.or(it).toString()} ?: "Invalid operand"
-                        else -> b?.let{a.xor(it).toString()} ?: "Invalid operand"
+            "±" -> {
+                if (number != null) input = number.negate().toString(base).uppercase(Locale.US)
+                preview = ""
+            }
+            "NOT" -> {
+                if (number != null) {
+                    val original = input
+                    input = number.not().toString(base).uppercase(Locale.US)
+                    preview = "NOT $original"
+                    newOperand = true
+                }
+            }
+            "AND", "OR", "XOR", "SHL", "SHR", "MOD", "+" -> {
+                if (number != null) {
+                    stored = number
+                    pending = key
+                    preview = "${number.toString(base).uppercase(Locale.US)} $key"
+                    newOperand = true
+                }
+            }
+            "=" -> {
+                val lhs = stored
+                val rhs = number
+                val operation = pending
+                if (lhs != null && rhs != null && operation != null) {
+                    val answer: BigInteger? = when (operation) {
+                        "AND" -> lhs.and(rhs)
+                        "OR" -> lhs.or(rhs)
+                        "XOR" -> lhs.xor(rhs)
+                        "+" -> lhs.add(rhs)
+                        "MOD" -> if (rhs > BigInteger.ZERO) lhs.mod(rhs) else null
+                        "SHL" -> if (rhs >= BigInteger.ZERO && rhs <= BigInteger.valueOf(1024))
+                            lhs.shiftLeft(rhs.toInt()) else null
+                        "SHR" -> if (rhs >= BigInteger.ZERO && rhs <= BigInteger.valueOf(1024))
+                            lhs.shiftRight(rhs.toInt()) else null
+                        else -> null
                     }
-                },Modifier.weight(1f))
+                    if (answer == null) {
+                        error = "Invalid operand"
+                    } else {
+                        preview = "${lhs.toString(base).uppercase(Locale.US)} $operation ${rhs.toString(base).uppercase(Locale.US)}"
+                        input = answer.toString(base).uppercase(Locale.US)
+                        stored = null; pending = null; newOperand = true
+                    }
+                }
+            }
+            else -> {
+                val digit = key.singleOrNull()?.digitToIntOrNull(16)
+                if (digit != null && digit < base) {
+                    val updated = if (newOperand || input == "0") key else input + key
+                    if (updated.length <= 64) {
+                        input = updated
+                        newOperand = false
+                        if (pending == null) preview = ""
+                    }
+                }
             }
         }
-        Spacer(Modifier.height(14.dp))
-        Text(result,color=p.accent,fontSize=22.sp)
+    }
+
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        BrandCard(p, Modifier.fillMaxWidth().weight(2.4f)) {
+            Box(Modifier.fillMaxSize()) {
+                Text(if (error != null) error!! else preview,
+                    color = p.muted, fontSize = 18.sp, maxLines = 2,
+                    textAlign = TextAlign.End, modifier = Modifier.align(Alignment.TopEnd))
+                Text(number?.toString(base)?.uppercase(Locale.US) ?: "Error",
+                    color = if (error != null) Color(0xFFFF978A) else p.text,
+                    fontSize = if (input.length > 10) 31.sp else 52.sp,
+                    fontWeight = FontWeight.Bold, maxLines = 2,
+                    textAlign = TextAlign.End, modifier = Modifier.align(Alignment.BottomEnd))
+            }
+        }
+        Row(Modifier.fillMaxWidth().weight(1.05f),
+            horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+            options.forEach { (option, label) ->
+                val value = number?.toString(option)?.uppercase(Locale.US) ?: "—"
+                Column(
+                    Modifier.weight(1f).fillMaxHeight()
+                        .background(if (base == option) p.surface2 else p.surface, BrandShape)
+                        .clickable {
+                            if (number != null) {
+                                input = number.toString(option).uppercase(Locale.US)
+                                base = option
+                                newOperand = true
+                                preview = ""
+                            }
+                        }.padding(horizontal = 4.dp, vertical = 5.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(label, color = p.accent, fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(4.dp))
+                    Text(value, color = p.text, fontWeight = FontWeight.SemiBold,
+                        fontSize = if (value.length > 10) 9.sp else 14.sp, maxLines = 1)
+                }
+            }
+        }
+        keypad.forEach { row ->
+            Row(Modifier.fillMaxWidth().weight(0.9f),
+                horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                row.forEach { key ->
+                    val digit = key.singleOrNull()?.digitToIntOrNull(16)
+                    val enabled = digit == null || digit < base
+                    val primary = key == "="
+                    val operator = key in listOf("AND", "OR", "XOR", "NOT", "SHL", "SHR", "MOD", "±", "+")
+                    Box(Modifier.weight(1f).fillMaxHeight()
+                        .background(
+                            if (primary) p.accent
+                            else if (operator) p.surface2
+                            else p.surface, BrandShape
+                        )
+                        .clickable(enabled = enabled) { keyPressed(key) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(key, fontSize = if (key.length > 2) 17.sp else 22.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (!enabled) p.stroke
+                                else if (primary) p.onAccent
+                                else if (operator) p.accent else p.text)
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(7.dp))
     }
 }
 
