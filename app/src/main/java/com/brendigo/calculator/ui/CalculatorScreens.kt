@@ -22,6 +22,8 @@ import java.util.Date
 import java.util.Locale
 
 @Composable fun CalculatorPage(app:CalculatorState,p:BrandPalette,onKey:(String)->Unit) {
+    var secondMode by remember { mutableStateOf(false) }
+    val scientific = app.activeMode == "Scientific"
     Column(Modifier.fillMaxSize().padding(horizontal=24.dp)) {
         Row(Modifier.fillMaxWidth().padding(top=5.dp,bottom=12.dp),
             horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -39,54 +41,74 @@ import java.util.Locale
         if(app.activeMode=="Programmer") {
             ProgrammerPanel(p)
         } else {
-            BrandCard(p,Modifier.fillMaxWidth().weight(if(app.activeMode=="Scientific")1.6f else 2.4f)) {
+            BrandCard(p,Modifier.fillMaxWidth().weight(if(scientific)2.8f else 2.4f)) {
                 Box(Modifier.fillMaxSize()) {
                     Column(Modifier.align(Alignment.CenterEnd),
                         horizontalAlignment=Alignment.End) {
                         Text(app.expression.ifBlank { "0" },color=p.muted,fontSize=24.sp,
                             textAlign=TextAlign.End,maxLines=2)
-                        Spacer(Modifier.height(18.dp))
+                        Spacer(Modifier.height(if(scientific) 12.dp else 18.dp))
                         val result=if(app.expression.isBlank())"0" else app.calculate()
                         Text(if(app.thousands) CalculatorEngine.grouped(result) else result,
                             color=if(result=="Error")Color(0xFFFF978A) else p.text,
                             fontSize=if(result.length>12)39.sp else 54.sp,
                             fontWeight=FontWeight.Bold,maxLines=2,textAlign=TextAlign.End)
                     }
-                    Text("Instant result",color=p.accent,fontSize=12.sp,
+                    if (!scientific) Text("Instant result",color=p.accent,fontSize=12.sp,
                         modifier=Modifier.align(Alignment.BottomStart))
                 }
             }
-            Spacer(Modifier.height(13.dp))
-            if (app.activeMode=="Scientific") {
+            Spacer(Modifier.height(if(scientific) 10.dp else 13.dp))
+            if (scientific) {
                 val extra=listOf(
-                    listOf("sin","cos","tan","π"),
-                    listOf("ln","log","sqrt","xʸ"),
-                    listOf("x²","n!","1/x","e"))
+                    listOf("DEG","RAD","2nd","π","e"),
+                    if(secondMode) listOf("asin","acos","atan","log","ln")
+                    else listOf("sin","cos","tan","log","ln"),
+                    listOf("x²","xʸ","√","n!","1/x"))
+                val selected=buildSet {
+                    add(if(app.degrees)"DEG" else "RAD")
+                    if(secondMode)add("2nd")
+                }
                 extra.forEach { row ->
-                    KeypadRow(row,p,Modifier.weight(0.42f),onKey,true)
-                    Spacer(Modifier.height(5.dp))
+                    KeypadRow(row,p,Modifier.weight(0.95f),{ key ->
+                        when (key) {
+                            "DEG" -> app.updateDegrees(true)
+                            "RAD" -> app.updateDegrees(false)
+                            "2nd" -> secondMode = !secondMode
+                            "√" -> onKey("sqrt")
+                            else -> onKey(key)
+                        }
+                    },true,selected)
+                    Spacer(Modifier.height(6.dp))
                 }
             }
-            val rows=listOf(
+            val rows=if(scientific) listOf(
+                listOf("AC","(",")","÷"),
+                listOf("7","8","9","×"),
+                listOf("4","5","6","−"),
+                listOf("1","2","3","+"),
+                listOf("0",".","⌫","="))
+            else listOf(
                 listOf("AC","( )","%","÷"),
                 listOf("7","8","9","×"),
                 listOf("4","5","6","−"),
                 listOf("1","2","3","+"),
                 listOf("0",".","⌫","="))
             rows.forEachIndexed { idx,row ->
-                KeypadRow(row,p,Modifier.weight(1f),onKey,false)
-                if(idx<rows.lastIndex) Spacer(Modifier.height(9.dp))
+                KeypadRow(row,p,Modifier.weight(if(scientific)0.9f else 1f),onKey,false)
+                if(idx<rows.lastIndex) Spacer(Modifier.height(if(scientific) 6.dp else 9.dp))
             }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(if(scientific) 10.dp else 20.dp))
         }
     }
 }
 @Composable private fun KeypadRow(row:List<String>,p:BrandPalette,modifier:Modifier,
-    onKey:(String)->Unit,scientific:Boolean) {
+    onKey:(String)->Unit,scientific:Boolean,selected:Set<String> = emptySet()) {
     Row(modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(9.dp)) {
         row.forEach { label ->
             val primary=label=="="
-            val operator=label in listOf("÷","×","−","+","AC")
+            val active=label in selected
+            val operator=label in listOf("÷","×","−","+","AC") || active
             Box(Modifier.weight(1f).fillMaxHeight().background(
                 if(primary)p.accent else if(operator)p.surface2 else p.surface,BrandShape)
                 .clickable {onKey(label)}.padding(3.dp),
