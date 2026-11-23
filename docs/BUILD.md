@@ -1,6 +1,6 @@
 # Calculator — build & release
 
-The native application targets API 36, compiles against API 37, minSdk 24 and uses Java 17, AGP 9.4.0, Kotlin Compose compiler 2.4.10, Gradle 9.6.0 and stable AndroidX dependencies.
+The native application targets API 36, compiles against API 37.0, minSdk 24 and uses Java 17, AGP 9.4.0, Kotlin Compose compiler 2.4.10, Gradle 9.6.0 and stable AndroidX dependencies.
 
 Open the project in Android Studio or run:
 

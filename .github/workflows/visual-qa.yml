@@ -40,7 +40,7 @@ jobs:
             echo "::warning::No /dev/kvm available; Android emulator will use explicit TCG fallback."
           fi
       - name: Install platform
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+        run: sdkmanager "platforms;android-37.0" "build-tools;36.0.0"
       - name: Compile app
         run: gradle --no-daemon :app:assembleDebug
       - name: Capture live screen renders
