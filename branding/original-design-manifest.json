@@ -1,0 +1,67 @@
+{
+  "brand": "Calculator",
+  "language": "en",
+  "platform": "Android",
+  "theme": "Flat 2D; no gradients, shadows, 3D, skeuomorphism, or neon",
+  "initial_route": "00_splash → 01_standard_calculator",
+  "onboarding": false,
+  "colors": {
+    "bg": "#101D26",
+    "surface": "#1B2D38",
+    "surface2": "#263C48",
+    "stroke": "#34505C",
+    "text": "#F3F8FA",
+    "muted": "#A0B2BD",
+    "accent": "#53E4C5",
+    "accentDark": "#092921",
+    "warm": "#FFB077",
+    "quiet": "#7A98A7",
+    "danger": "#FF978A"
+  },
+  "typography": {
+    "family": "Inter",
+    "numeric": "Inter with tabular numerals in implementation"
+  },
+  "screens": [
+    "00_splash",
+    "01_standard_calculator",
+    "02_scientific_calculator",
+    "03_programmer_calculator",
+    "04_history",
+    "05_favorites",
+    "06_tools_hub",
+    "07_unit_converter",
+    "08_currency_converter",
+    "09_percentage_calculator",
+    "10_tip_and_split",
+    "11_loan_planner",
+    "12_discount_calculator",
+    "13_vat_and_tax",
+    "14_date_calculator",
+    "15_graphing",
+    "16_settings",
+    "17_appearance_themes",
+    "18_calculation_preferences",
+    "19_quick_access",
+    "20_privacy_data",
+    "21_about",
+    "22_empty_history",
+    "23_error_state",
+    "24_light_theme_standard",
+    "25_amoled_theme_standard",
+    "26_widget_previews"
+  ],
+  "app_icon": "brand/launcher_icon.png",
+  "store_feature_graphic": "play_store/feature_graphic_1024x500.png",
+  "design_dimensions": {
+    "svg": "432 × 960 logical units",
+    "png": "1296 × 2880 px"
+  },
+  "notes": [
+    "UI design assets only; not an installable Android app.",
+    "Calculator Android app category can be registered with ACTION_MAIN plus CATEGORY_APP_CALCULATOR.",
+    "Android does not guarantee a universal default-calculator user role on every device.",
+    "Currency rates shown are sample figures, not live rates.",
+    "Loan output is an estimate and must be calculated by implemented business logic."
+  ]
+}
